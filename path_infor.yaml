@@ -1,0 +1,6 @@
+cataract_train:
+  csv_path: /mnt/nas2_data/fmo/02_data/Retina_datasets/Cataract/Annotations_exp4/val.csv
+  cataract: level
+  img_dir: ""
+  img_path_col: image
+  describe:

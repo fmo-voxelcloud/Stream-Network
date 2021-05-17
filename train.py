@@ -11,6 +11,9 @@ from tqdm import tqdm
 from libs.nets.efficientnet_pytorch import EfficientNet
 from libs.nets.stream_net import StreamNet
 
+from data_loader import train_loader, basic_loader
+from utils import load_pretrain_model
+
 
 def hook(module, inp, outp):
     return outp.clone().detach()
@@ -38,8 +41,8 @@ def train(config):
 
         # load trained model
         ckpt_path = model_config['checkpoint_path']
-        state_dict = model_config['state_dict']
-        # model.load_state_dict(torch.load(ckpt_path)[state_dict])
+        key_ckpt = model_config['key_checkpoint']
+        model = load_pretrain_model(model, ckpt_path, key_ckpt)
 
         # add hook to extract feature(s)
         feature_name = model_config['stream_feature_names']
@@ -68,8 +71,9 @@ def train(config):
     if sw_config['pretrained_model']:
         sw = torch.load(sw_conig['pretrained_model'])
     else:
+        model = # TODO
+        sw = torch.load()
         pass
-        # sw = # TODO
 
 
 if __name__ == "__main__":
