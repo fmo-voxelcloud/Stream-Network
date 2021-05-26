@@ -7,16 +7,15 @@ import os
 import json
 import timm
 
+import torch
+
 from tqdm import tqdm
 from libs.nets.efficientnet_pytorch import EfficientNet
 from libs.nets.stream_net import StreamNet
 
-from data_loader import train_loader, basic_loader
-from utils import load_pretrain_model
+from libs.data.data_loader import train_loader, basic_loader
+from utils.utils import load_pretrain_model
 
-
-def hook(module, inp, outp):
-    return outp.clone().detach()
 
 
 def train(config):
@@ -25,6 +24,9 @@ def train(config):
     training_stage = config["training_stage"]
 
     model_list = list()
+
+    def hook(module, inp, outp):
+        features.(outp.clone().detach())
 
     for idx, model_config in enumerate(config["models"]):
 
@@ -45,16 +47,22 @@ def train(config):
         model = load_pretrain_model(model, ckpt_path, key_ckpt)
 
         # add hook to extract feature(s)
-        feature_name = model_config['stream_feature_names']
-        handles = list()
-        for fn in feature_name:
+        feature_names = model_config['stream_feature_names']
+        feature_dims = model_config['stream_feature_dims']
+
+        features
+
+        for fn, fd in zip(feature_names, feature_dims):
             ftr = eval(f"model.{fn}.register_forward_hook(hook)")
+
             handles.append(ftr)
             print(ftr)
+            handle_dims.append(fd)
 
         # transform for image preprocess
         image_size = model_config['image_size']
         resize_mode = model_config['resize_mode']
+
         # TODO
 
         # dataloader
@@ -64,16 +72,61 @@ def train(config):
         stream['model'] = model
         stream['hook'] = handles
         stream['dataloader'] = data_loader
+        stream['feature_dim'] = handle_dims
 
         model_list.append(stream)
 
     sw_config = config['stream_weights']
-    if sw_config['pretrained_model']:
-        sw = torch.load(sw_conig['pretrained_model'])
-    else:
-        model = # TODO
-        sw = torch.load()
-        pass
+
+    input_tensor_shape = 0
+    for model in model_list:
+        ft_dim = model['feature_dim']
+        input_tensor_shape += ft_dim
+
+    # stream net
+    stream_net = StreamNet(sw_config, input_tensor_shape)
+
+    tr_config = config['train_op']
+
+    # optimizer
+    optimizer = configure_optimizer(tr_config)
+
+    # loss
+    loss_function = configure_loss(tr_config)
+
+    global_step = 0
+
+    # training
+    for epoch in epochs:
+
+        for data, label in data_loader:
+
+            inp = []
+
+            for i in range(len(data)):
+                y = model[i](data[i]) # execute forward propagation
+
+                mid = features[i][-1]
+                inp.append(mid)
+
+            if merge_method == "concat":
+                bla bla
+            elif merge_method == "add":
+                bla bla
+            else:
+                pass
+
+            out = stream_net(inp)
+
+            optimizer.zero_grad()
+
+            loss = loss_function(out, label)
+
+            loss.backward()
+
+            optimizer.step()
+
+            global_step += 1
 
 
 if __name__ == "__main__":

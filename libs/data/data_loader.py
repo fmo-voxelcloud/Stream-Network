@@ -19,7 +19,7 @@ import albumentations
 import albumentations.augmentations.transforms as transforms
 import albumentations.core.composition as composition
 
-from black_cut import RandomCenterCut, process_fundus, pad_square
+from .black_cut import RandomCenterCut, process_fundus, pad_square
 
 
 def augmentation(mode, target_size, prob = 0.5, aug_m=2):
