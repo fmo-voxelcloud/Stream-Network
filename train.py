@@ -12,10 +12,37 @@ import torch
 from tqdm import tqdm
 from libs.nets.efficientnet_pytorch import EfficientNet
 from libs.nets.stream_net import StreamNet
+from libs.layers.loss import LossFunction
 
 from libs.data.data_loader import train_loader, basic_loader
 from utils.utils import load_pretrain_model
 
+
+def build_stream_net(config, input_shape):
+
+    out_dim = config['out_dim']
+    active = config['activation']
+    arg1 = config['arg1']
+    arg2 = config['arg2']
+    depth = config['depth']
+    width = config['width']
+
+    StreamNet.arg1 = arg1
+    StreamNet.arg2 = arg2
+
+    net = StreamNet(inp_dim=input_shape, out_dim=out_dim, depth=depth)
+
+    return net
+
+
+def configure_loss(cfg):
+
+    loss_type = cfg['loss']
+    lw = cfg['loss_weights']
+
+    loss = LossFunction(loss_type, lw)
+
+    return loss
 
 
 def train(config):
@@ -83,15 +110,13 @@ def train(config):
         ft_dim = model['feature_dim']
         input_tensor_shape += ft_dim
 
-    # stream net
-    stream_net = StreamNet(sw_config, input_tensor_shape)
+    # stream network
+    stream_net = build_stream_net(sw_config, input_tensor_shape)
 
+
+    # optimizer & loss
     tr_config = config['train_op']
-
-    # optimizer
     optimizer = configure_optimizer(tr_config)
-
-    # loss
     loss_function = configure_loss(tr_config)
 
     global_step = 0

@@ -41,7 +41,7 @@ class StreamNet(nn.Module):
             layers.append(act)
 
         layers.append(nn.Linear(self.width, self.out_dim))
-        layers.append(nn.Softmax(dim=1))
+        # layers.append(nn.Softmax(dim=1))
 
         return nn.Sequential(*layers)
 
@@ -52,6 +52,7 @@ class StreamNet(nn.Module):
 
 if __name__ == "__main__":
 
+    StreamNet.arg1 = 0.3
     net = StreamNet(50, 10)
     print(net)
     x = torch.randn(8, 50)
